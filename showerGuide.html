@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>샤워 타이머</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 50px;
+        background-color: #e0f7fa;
+        color: #01579b;
+      }
+      .timer {
+        font-size: 3em;
+        margin: 20px;
+        font-weight: bold;
+      }
+      button {
+        font-size: 1.5em;
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        border-radius: 10px;
+        background-color: #81d4fa;
+        color: #01579b;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #4fc3f7;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>샤워 타이머</h1>
+    <div>
+      <button onclick="startTimer(300, '5min')">5분</button>
+      <button onclick="startTimer(600, '10min')">10분</button>
+      <button onclick="startTimer(1800, '30min')">30분</button>
+      <button onclick="pauseTimer()">일시정지</button>
+    </div>
+    <div class="timer" id="timer">00:00</div>
+    <script>
+      let interval;
+      let timeLeft = 0;
+      let isPaused = false;
+
+      function startTimer(duration, mode) {
+        clearInterval(interval);
+        timeLeft = duration;
+        isPaused = false;
+        updateDisplay(timeLeft);
+        interval = setInterval(() => {
+          if (!isPaused) {
+            timeLeft--;
+            updateDisplay(timeLeft);
+            checkVoicePrompt(timeLeft, mode);
+            if (timeLeft <= 0) {
+              speak('샤워가 완료되었습니다!');
+              clearInterval(interval);
+            }
+          }
+        }, 1000);
+      }
+
+      function pauseTimer() {
+        isPaused = !isPaused;
+      }
+
+      function updateDisplay(seconds) {
+        let minutes = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+        document.getElementById('timer').textContent = `${minutes}:${
+          secs < 10 ? '0' : ''
+        }${secs}`;
+      }
+
+      function checkVoicePrompt(timeLeft, mode) {
+        const prompts = {
+          '5min': {
+            300: '물을 묻히세요',
+            260: '샴푸하세요',
+            210: '샴푸를 씻어내세요',
+            180: '린스를 바르세요',
+            140: '린스를 씻어내세요',
+            110: '바디워시로 몸을 닦으세요',
+            50: '바디워시를 씻어내세요',
+          },
+          '10min': {
+            600: '물을 묻히세요',
+            540: '샴푸하세요',
+            450: '샴푸를 씻어내세요',
+            390: '린스를 바르세요',
+            300: '린스를 씻어내세요',
+            240: '바디워시로 몸을 닦으세요',
+            120: '바디워시를 씻어내세요',
+          },
+          '30min': {
+            1800: '물을 묻히세요',
+            1620: '샴푸하세요',
+            1380: '샴푸를 씻어내세요',
+            1200: '린스를 바르세요',
+            900: '린스를 씻어내세요',
+            720: '바디워시로 몸을 닦으세요',
+            300: '바디워시를 씻어내세요',
+          },
+        };
+        if (prompts[mode] && prompts[mode][timeLeft]) {
+          speak(prompts[mode][timeLeft]);
+        }
+      }
+
+      function speak(text) {
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        speechSynthesis.speak(utterance);
+      }
+    </script>
+  </body>
+</html>
